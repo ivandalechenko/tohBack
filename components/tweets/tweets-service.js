@@ -3,7 +3,7 @@ const axios = require('axios');
 const tweetsModel = require('./tweets-model');
 const now = require('../../utils/now');
 
-
+const bearerToken = `AAAAAAAAAAAAAAAAAAAAAILWqgEAAAAA%2B1x%2Bv5J2iElOxm9Md4piNsWlTBY%3DVz0y4g0ZWMoCFucYDk1UtZL1KbEuOTqxSvmfje2tgrG0fz9cGR`;
 class tweetsService {
 
     async get() {
@@ -15,7 +15,12 @@ class tweetsService {
 
         if (tweets.lastUpdate < now() - 60 * 20) {
             // const data = getDataExample()
-            const res = await axios.get("https://api.twitter.com/2/users/1859003083444961283/tweets")
+            const res = await axios.get("https://api.twitter.com/2/users/1859003083444961283/tweets", {
+                headers: {
+                    'Authorization': `Bearer ${bearerToken}`,
+                    'Content-Type': 'application/json'
+                }
+            })
             const data = res.data
             const posts = data.data
             let postIds = []
@@ -23,7 +28,12 @@ class tweetsService {
                 postIds.push(posts[i].id)
             }
             // const postsRaw = getPostsExample()
-            const postsRes = await axios.get(`https://api.twitter.com/2/tweets?ids=${postIds.join(',')}&tweet.fields=text,public_metrics&expansions=attachments.media_keys&media.fields=url`)
+            const postsRes = await axios.get(`https://api.twitter.com/2/tweets?ids=${postIds.join(',')}&tweet.fields=text,public_metrics&expansions=attachments.media_keys&media.fields=url`, {
+                headers: {
+                    'Authorization': `Bearer ${bearerToken}`,
+                    'Content-Type': 'application/json'
+                }
+            })
             const postsRaw = postsRes.data
             const postArr = transformPosts(postsRaw)
             tweets = await tweetsModel.findOneAndUpdate({}, { tweets: JSON.stringify(postArr), lastUpdate: now() }, { new: true })
