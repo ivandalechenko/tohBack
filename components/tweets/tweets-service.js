@@ -13,32 +13,37 @@ class tweetsService {
             tweets = await tweetsModel.create({ tweets: '', lastUpdate: now() })
         }
 
-        if (tweets.lastUpdate < now() - 60 * 20) {
-            // const data = getDataExample()
-            const res = await axios.get("https://api.twitter.com/2/users/1859003083444961283/tweets", {
-                headers: {
-                    'Authorization': `Bearer ${bearerToken}`,
-                    'Content-Type': 'application/json'
-                }
-            })
-            const data = res.data
-            const posts = data.data
-            let postIds = []
-            for (let i = 0; i < posts.length; i++) {
-                postIds.push(posts[i].id)
-            }
-            // const postsRaw = getPostsExample()
-            const postsRes = await axios.get(`https://api.twitter.com/2/tweets?ids=${postIds.join(',')}&tweet.fields=text,public_metrics&expansions=attachments.media_keys&media.fields=url`, {
-                headers: {
-                    'Authorization': `Bearer ${bearerToken}`,
-                    'Content-Type': 'application/json'
-                }
-            })
-            const postsRaw = postsRes.data
-            const postArr = transformPosts(postsRaw)
-            tweets = await tweetsModel.findOneAndUpdate({}, { tweets: JSON.stringify(postArr), lastUpdate: now() }, { new: true })
-        }
+        try {
 
+            if (tweets.lastUpdate < now() - 60 * 20) {
+                // const data = getDataExample()
+                const res = await axios.get("https://api.twitter.com/2/users/1859003083444961283/tweets", {
+                    headers: {
+                        'Authorization': `Bearer ${bearerToken}`,
+                        'Content-Type': 'application/json'
+                    }
+                })
+                const data = res.data
+                const posts = data.data
+                let postIds = []
+                for (let i = 0; i < posts.length; i++) {
+                    postIds.push(posts[i].id)
+                }
+                // const postsRaw = getPostsExample()
+                const postsRes = await axios.get(`https://api.twitter.com/2/tweets?ids=${postIds.join(',')}&tweet.fields=text,public_metrics&expansions=attachments.media_keys&media.fields=url`, {
+                    headers: {
+                        'Authorization': `Bearer ${bearerToken}`,
+                        'Content-Type': 'application/json'
+                    }
+                })
+                const postsRaw = postsRes.data
+                const postArr = transformPosts(postsRaw)
+                tweets = await tweetsModel.findOneAndUpdate({}, { tweets: JSON.stringify(postArr), lastUpdate: now() }, { new: true })
+            }
+
+        } catch (error) {
+
+        }
 
         return tweets;
     }
